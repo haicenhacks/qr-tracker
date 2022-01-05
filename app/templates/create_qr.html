@@ -9,10 +9,25 @@
 <body>
 
 <div>
+  <form method="POST">
+    URI: {{ qr_uri }}
+    <br>
+    Redirect URI: <input type="text" name="redirect_uri" value="{{ redirect_uri }}" size="60">
+    <br>
+    Name: <input type="text" name="name">
+    <input type="submit" value="Submit">
+
     <a href="{{ qr_data }}">Link</a>
-    <img src="{{ qrcode('qr_data', border=10)  }}">
+  </form>
+</div>
+
+{% if qr_data %}
+    <div>
+      <br>
+    <img src="{{ qrcode('qr_data')}}">
 
 </div>
+{% endif %}
 
 </body>
 </html>

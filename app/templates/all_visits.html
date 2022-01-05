@@ -10,9 +10,7 @@
 
 <div>
 
-    {% if user_ip %}
-      <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
-    {% endif %}
+
     {% if visitors %}
     <table>
       <thead>
@@ -20,6 +18,7 @@
           <th>Time</th>
           <th>IP address</th>
           <th>User Agent</th>
+          <th>UUID</th>
         </tr>
       </thead>
       <tbody>
@@ -28,6 +27,7 @@
           <td>{{ visitor.time }}</td>
           <td>{{ visitor.ip_address }}</td>
           <td>{{ visitor.user_agent }}</td>
+          <td>{{ visitor.uuid }}</td>
         </tr>
       {% endfor %}
       </tbody>

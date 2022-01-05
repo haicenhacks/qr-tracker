@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR code logger</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+
+<div>
+
+
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>UUID</th>
+          <th>Redirect URI</th>
+          <th>QR code</th>
+          <th>Visit Count</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for qr in qrs %}
+        <tr>
+          <td>{{ qr.name }}</td>
+          <td><a href="{{ url_for('view_uuid', id=qr.uuid) }}">{{ url_for('view_uuid', id=qr.uuid) }}</a></td>
+          <td><a href="{{ qr.redirect_uri}}">{{ qr.redirect_uri}}</a></td>
+          <td><img src="{{ qrcode('qr.qr_data')}}"></td>
+          <td>{{qr.visits.all()|length}}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>
