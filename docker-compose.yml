@@ -1,0 +1,16 @@
+version: '3'
+services:
+    iotweb:
+        environment:
+          PYTHONUNBUFFERED: 1
+        build: .
+        ports:
+            - "5002:5002"
+        volumes:
+            - .:/app
+        networks:
+          - default
+#;networks:
+#   default:
+#      external:
+#        name: nginxproxymanager_default
