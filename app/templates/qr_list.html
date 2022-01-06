@@ -28,7 +28,7 @@
           <td>{{ qr.name }}</td>
           <td><a href="{{ url_for('view_uuid', id=qr.uuid) }}">{{ url_for('view_uuid', id=qr.uuid) }}</a></td>
           <td><a href="{{ qr.redirect_uri}}">{{ qr.redirect_uri}}</a></td>
-          <td><img src="{{ qrcode('qr.qr_data')}}"></td>
+          <td><img src="{{ qrcode('qr.qr_data', error_correction='H')}}"></td>
           <td>{{qr.visits.all()|length}}</td>
         </tr>
       {% endfor %}

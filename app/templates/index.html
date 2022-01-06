@@ -9,10 +9,31 @@
 <body>
 
 <div>
+  {% if current_user.is_authenticated %}
+    <a href="{{url_for('createqr')}}">Create new QR Campaign</a>
+    |
+    <a href="{{ url_for('view_campaigns') }}">View Campaigns</a>
+    |
+    Logged in as {{ current_user.id }}
+    |
+    <a href="{{ url_for('logout')}}">Logout</a>
+  {% endif %}
 
     {% if user_ip %}
       <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
+
+
+    {% else %}
+
+
+    <h2>{{ this_qr.name }}</h2>
+    QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}">
+
+    {# QR data: {{this_qr.uuid}} #}
+
     {% endif %}
+
+
     {% if visitors %}
     <table>
       <thead>

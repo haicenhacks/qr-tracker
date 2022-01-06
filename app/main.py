@@ -1,15 +1,34 @@
 import json
 import secrets
 import uuid
+import os
+#from app import app
+#from views import *
+#from models import models
+from flask import Flask
+from secrets import users
+
 from flask import Flask, jsonify, request, render_template, redirect, url_for
 from flask_qrcode import QRcode
 from flask_uuid import FlaskUUID
-from app import app
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+import flask_login
+
+#from . import database
+#from . import models
+app = Flask(__name__)
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///qr_project.db'
 app.config['SECRET_KEY'] = "random string"
+
+login_manager = flask_login.LoginManager()
+
+login_manager.init_app(app)
+
 db = SQLAlchemy(app)
 
 qrcode = QRcode(app)
@@ -19,6 +38,31 @@ FlaskUUID(app)
 
 # You can generate a Token from the "Tokens Tab" in the UI
 url_base = 'http://192.168.1.5:5002/'
+
+
+class User(flask_login.UserMixin):
+    pass
+
+
+@login_manager.user_loader
+def user_loader(email):
+    if email not in users:
+        return
+
+    user = User()
+    user.id = email
+    return user
+
+
+@login_manager.request_loader
+def request_loader(request):
+    email = request.form.get('username')
+    if email not in users:
+        return
+
+    user = User()
+    user.id = email
+    return user
 
 class Qr(db.Model):
     __tablename__ = 'Qr'
@@ -40,9 +84,6 @@ class Visitor(db.Model):
     qr_scanned = db.Column(db.Integer, db.ForeignKey(Qr.uuid) )
 
 
-
-
-
 @app.route('/hello')
 def hello():
     return "hello world"
@@ -53,12 +94,18 @@ def hello():
 def index():
     #visitors = Visitor.query.all()
     #return render_template('index.html')
-    return render_template('index.html', user_ip=request.environ.get('HTTP_X_REAL_IP', request.remote_addr), user_agent=request.user_agent)
-
+    print(flask_login.current_user.id)
+    user_ip=request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+    user_agent=str(request.user_agent)
+    time = datetime.now()
+    return render_template('index.html', user_ip=user_ip, user_agent=user_agent)
 @app.route('/view/<uuid:id>')
 def view_uuid(id):
     visitors = Visitor.query.filter_by(uuid = str(id))
-    return render_template('index.html', visitors=visitors)
+    this_qr = Qr.query.filter_by(uuid = str(id)).one()
+
+
+    return render_template('index.html', visitors=visitors, this_qr=this_qr)
 
 
 @app.route('/view')
@@ -75,10 +122,16 @@ def visituuid(id):
     visitor = Visitor(ip_address=user_ip, user_agent=user_agent, time=time, qr_scanned=str(id), uuid=str(id))
     db.session.add(visitor)
     db.session.commit()
+    this_qr = Qr.query.filter_by(uuid = str(id)).one()
     visitors = Visitor.query.filter_by(uuid = str(id))
-    return render_template('index.html', user_ip=request.environ.get('HTTP_X_REAL_IP', request.remote_addr), user_agent=request.user_agent, visitors=visitors)
+    if str(id) not in this_qr.redirect_uri:
+        return redirect(this_qr.redirect_uri, 302)
+
+    else:
+        return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
 
 @app.route('/create', methods = ['POST', 'GET'])
+@flask_login.login_required
 def createqr():
 
     random_uuid = uuid.uuid4()
@@ -103,6 +156,41 @@ def createqr():
 def all_visits():
     visitors = Visitor.query.all()
     return render_template('all_visits.html', visitors=visitors)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return '''
+               <form action='login' method='POST'>
+                <input type='text' name='username' id='username' placeholder='username'/>
+                <input type='password' name='password' id='password' placeholder='password'/>
+                <input type='submit' name='submit'/>
+               </form>
+               '''
+
+    username = request.form['username']
+    print(username)
+    if request.form['password'] == users[username]['password']:
+        user = User()
+        user.id = username
+        flask_login.login_user(user)
+        return redirect(url_for('protected'))
+
+    return 'Bad login'
+
+
+@app.route('/protected')
+@flask_login.login_required
+def protected():
+    return 'Logged in as: ' + flask_login.current_user.id
+
+@app.route("/logout")
+@flask_login.login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
 
 db.create_all()
 

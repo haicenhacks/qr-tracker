@@ -9,3 +9,4 @@ Pillow
 Flask-QRcode
 Flask-UUID
 Flask-SQLAlchemy
+flask-login
