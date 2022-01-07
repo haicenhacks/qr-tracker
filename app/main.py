@@ -38,7 +38,7 @@ FlaskUUID(app)
 
 
 # You can generate a Token from the "Tokens Tab" in the UI
-url_base = 'http://192.168.1.5:5002'
+url_base = 'http://localhost:5002'
 
 
 class User(flask_login.UserMixin):
@@ -136,13 +136,26 @@ def view_uuid(id):
 
 @app.route('/view')
 def view_campaigns():
-
     if flask_login.current_user.id == 'admin':
         print("Admin = true")
         qrs = Qr.query.all()
     else:
         qrs = Qr.query.filter_by(created_by=flask_login.current_user.id)
     return render_template('qr_list.html', qrs=qrs)
+
+@app.route('/<uuid:id>/redirect')
+def finalredirect(id):
+    print(request.cookies.get('width'))
+    print(request.cookies.get('height'))
+    user_ip=request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+    user_agent=str(request.user_agent)
+    this_qr = Qr.query.filter_by(uuid=str(id)).one()
+    visitors = Visitor.query.filter_by(uuid = str(id))
+    if str(id) not in this_qr.redirect_uri:
+        return redirect(this_qr.redirect_uri, 302)
+
+    else:
+        return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
 
 
 @app.route('/<uuid:id>')
@@ -158,11 +171,12 @@ def visituuid(id):
     visitors = Visitor.query.filter_by(uuid = str(id))
 
 
-    if str(id) not in this_qr.redirect_uri:
-        return redirect(this_qr.redirect_uri, 302)
+    #if str(id) not in this_qr.redirect_uri:
+    #    return redirect(this_qr.redirect_uri, 302)
 
-    else:
-        return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
+    #else:
+    #    return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
+    return render_template('visit.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
 
 @app.route('/create', methods = ['POST', 'GET'])
 @flask_login.login_required
