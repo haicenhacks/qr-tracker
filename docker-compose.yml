@@ -3,6 +3,7 @@ services:
     qrcode:
         environment:
           PYTHONUNBUFFERED: 1
+          FLASK_SECRET_KEY: "${FLASK_SECRET_KEY}"
         build: .
         ports:
             - "5002:5002"

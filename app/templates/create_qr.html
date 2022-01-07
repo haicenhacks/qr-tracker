@@ -1,23 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>QR code logger</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-</head>
-<body>
+{% extends 'base.html' %}
 
+{% block header %}
+  <h1>{% block title %}Create QR code{% endblock %}</h1>
+{% endblock %}
+{% block content %}
 <div>
   <form method="POST">
     URI: {{ qr_uri }}
     <br>
-    Redirect URI: <input type="text" name="redirect_uri" value="{{ redirect_uri }}" size="60">
+    Redirect URI (leave blank to redirect to stats page): <input type="text" name="redirect_uri" size="60">
     <br>
     Name: <input type="text" name="name">
     <input type="submit" value="Submit">
-
-    <a href="{{ qr_data }}">Link</a>
   </form>
 </div>
 
@@ -28,6 +22,4 @@
 
 </div>
 {% endif %}
-
-</body>
-</html>
+{% endblock %}
