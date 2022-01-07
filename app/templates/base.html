@@ -21,11 +21,12 @@
 	  <a class="nav-link" aria-current="page" href="{{ url_for('index') }}">Home</a>
           <a class="nav-link" href="{{ url_for('createqr') }}">Create New QR Campaign</a>
           <a class="nav-link" href="{{ url_for('view_campaigns') }}">View Campaigns</a>
+          <a class="nav-link" href="{{ url_for('all_visits') }}">View All Visitors</a>
           <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">{{ current_user.id }}</a>
 	    <a class="nav-link" href="{{ url_for('logout')}}">Logout</a>
 	  {% else %}
 	    <a class="nav-link" href="{{ url_for('login')}}">Login</a>
-	{% endif %} 
+	{% endif %}
         </div>
       </div>
     </div>
@@ -36,7 +37,10 @@
     {% block header %}{% endblock %}
   </header>
   {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
   {% endfor %}
   {% block content %}{% endblock %}
 </section>

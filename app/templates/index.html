@@ -8,23 +8,27 @@
 
 
 <div>
+  {% if not current_user.is_authenticated %}
   <p>If you have reached this page, you have found the index. This is part of an information security experiment. You have probably scanned a QR code that didn't work.
 
-  This is in no way malicious. None of your personal data has been collected, beyond what is sent to any website.
+  This is in no way malicious. None of your personal data has been collected, beyond what is sent to any website. The extent of information collected is shown below:
   </p>
-
-    {% if user_ip %}
-      <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
-
-
-    {% else %}
+  {% endif %}
+  {% if user_ip %}
+    <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
+  {% else %}
 
 
     <h2>{{ this_qr.name }}</h2>
     QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}">
 
     {# QR data: {{this_qr.uuid}} #}
-
+    <br>
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}">Delete</a>
+      <br>
+      <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}">Edit</a>
+    {% endif %}
     {% endif %}
 
 

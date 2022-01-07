@@ -5,7 +5,7 @@ import os
 from flask import Flask
 from secrets import users
 
-from flask import Flask, jsonify, request, render_template, redirect, url_for
+from flask import Flask, jsonify, request, render_template, redirect, url_for, flash
 from flask_qrcode import QRcode
 from flask_uuid import FlaskUUID
 from datetime import datetime
@@ -13,16 +13,9 @@ from flask_sqlalchemy import SQLAlchemy
 import flask_login
 
 
-
-
-
-#from . import database
-#from . import models
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///qr_project.db'
 app.config['SECRET_KEY'] = os.environ['FLASK_SECRET_KEY']
 
@@ -34,10 +27,8 @@ db = SQLAlchemy(app)
 
 qrcode = QRcode(app)
 FlaskUUID(app)
-
-
-
-# You can generate a Token from the "Tokens Tab" in the UI
+enable_js_fingerprint = False
+# url_base is used to set the redirect uri after the unique url is visited
 url_base = 'http://localhost:5002'
 
 
@@ -84,7 +75,7 @@ class Visitor(db.Model):
     user_agent = db.Column(db.String(255))
     time = db.Column(db.DateTime())
     uuid = db.Column(db.String(100))
-    qr_scanned = db.Column(db.Integer, db.ForeignKey(Qr.uuid) )
+    qr_scanned = db.Column(db.String, db.ForeignKey(Qr.uuid) )
 
 
 
@@ -170,39 +161,76 @@ def visituuid(id):
     this_qr = Qr.query.filter_by(uuid=str(id)).one()
     visitors = Visitor.query.filter_by(uuid = str(id))
 
+    # either redirect to the js fingerprinting page, or the redirect uri as defined
+    if enable_js_fingerprint:
+        return render_template('visit.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
 
-    #if str(id) not in this_qr.redirect_uri:
-    #    return redirect(this_qr.redirect_uri, 302)
+    else:
+        if str(id) not in this_qr.redirect_uri:
+            return redirect(this_qr.redirect_uri, 302)
 
-    #else:
-    #    return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
-    return render_template('visit.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
+        else:
+            return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
+
+
+@app.route('/<uuid:id>/edit', methods = ['POST', 'GET'])
+@flask_login.login_required
+def edit_uuid(id):
+
+    this_qr = Qr.query.filter_by(uuid=str(id)).one()
+    if request.method == "POST":
+        req_keys = request.form.to_dict().keys()
+        print(request.form)
+        if 'name' in req_keys and 'redirect_uri' in req_keys:
+            name = request.form.get('name')
+            redirect_uri = request.form.get('redirect_uri')
+            this_qr.name = name
+            this_qr.redirect_uri = redirect_uri
+            db.session.commit()
+            flash('Update successful')
+            return redirect(url_for('view_uuid',id = str(id)))
+    else:
+        return render_template('create_qr.html', qr_uri=this_qr.qr_data, name=this_qr.name, redirect_uri=this_qr.redirect_uri)
+
 
 @app.route('/create', methods = ['POST', 'GET'])
 @flask_login.login_required
 def createqr():
+    """ Creates a unique url in the form of <url_base>/<uuid>, and inserts into database."""
 
+    # Generage random uuid
     random_uuid = uuid.uuid4()
+
+    # construct the url to be encoded in the qr code
     qr_uri = f'{url_base}/{random_uuid}'
 
+    # validate form data
     if request.method == 'POST':
-        #if qr_data:
-        #    validate_uri(qr_data)
-        print(request.form)
+        req_keys = request.form.to_dict().keys()
+        if "name" not in req_keys:
+            return 403
+        if "redirect_uri" not in req_keys:
+            return 403
         name=request.form.get('name')
         if name == '':
             name=None
 
         redirect_uri=request.form.get('redirect_uri')
+
         if redirect_uri == "":
             redirect_uri = f'{url_base}{url_for("view_uuid", id=random_uuid)}'
+
+        # insert into database. QR code generation happens on page load
         this_qr = Qr(uuid=str(random_uuid), qr_data=qr_uri, name=name, redirect_uri=redirect_uri, created_by=flask_login.current_user.id)
 
         db.session.add(this_qr)
         db.session.commit()
+
+        # if creation is successful, redirect to the stats page
         return redirect(url_for('view_uuid',id = str(random_uuid)))
+
     else:
-        return render_template('create_qr.html', qr_uri=qr_uri, redirect_uri=f'{url_base}/view/{random_uuid}')
+        return render_template('create_qr.html', qr_uri=qr_uri, redirect_uri="", name="")
 
 
 @app.route('/all')
@@ -243,7 +271,7 @@ def protected():
 @app.route("/logout")
 @flask_login.login_required
 def logout():
-    logout_user()
+    flask_login.logout_user()
     return redirect(url_for('login'))
 
 

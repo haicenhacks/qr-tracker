@@ -1,18 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>QR code logger</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-</head>
-<body>
+{% extends 'base.html' %}
 
-<div>
+{% block header %}
+  <h1>{% block title %}All visits{% endblock %}</h1>
+{% endblock %}
+{% block content %}
 
 
     {% if visitors %}
-    <table>
+      <table class="table table-responsive">
       <thead>
         <tr>
           <th>Time</th>
@@ -33,7 +28,4 @@
       </tbody>
     </table>
     {% endif %}
-</div>
-
-</body>
-</html>
+{% endblock %}
