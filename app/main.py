@@ -5,7 +5,7 @@ import os
 from flask import Flask
 from secrets import users
 
-from flask import Flask, jsonify, request, render_template, redirect, url_for, flash
+from flask import Flask, jsonify, request, render_template, redirect, url_for, flash, Response
 from flask_qrcode import QRcode
 from flask_uuid import FlaskUUID
 from datetime import datetime
@@ -29,7 +29,7 @@ qrcode = QRcode(app)
 FlaskUUID(app)
 enable_js_fingerprint = False
 # url_base is used to set the redirect uri after the unique url is visited
-url_base = 'http://localhost:5002'
+url_base = f"http://{os.environ['URL_BASE']}"
 
 
 class User(flask_login.UserMixin):
@@ -180,15 +180,23 @@ def edit_uuid(id):
     this_qr = Qr.query.filter_by(uuid=str(id)).one()
     if request.method == "POST":
         req_keys = request.form.to_dict().keys()
-        print(request.form)
+        print("FORM: ",request.form.to_dict())
         if 'name' in req_keys and 'redirect_uri' in req_keys:
             name = request.form.get('name')
             redirect_uri = request.form.get('redirect_uri')
+
             this_qr.name = name
-            this_qr.redirect_uri = redirect_uri
-            db.session.commit()
+            if redirect_uri != "":
+                this_qr.redirect_uri = redirect_uri
+            else:
+                redirect_uri = f'{url_base}{url_for("view_uuid", id=id)}'
+                this_qr.redirect_uri = redirect_uri
+            ret = db.session.commit()
+            print(ret)
             flash('Update successful')
             return redirect(url_for('view_uuid',id = str(id)))
+        else:
+            return Response("Missing form data (name or redirecturi)", status=403)
     else:
         return render_template('create_qr.html', qr_uri=this_qr.qr_data, name=this_qr.name, redirect_uri=this_qr.redirect_uri)
 
@@ -206,11 +214,13 @@ def createqr():
 
     # validate form data
     if request.method == 'POST':
+        print(request.form)
         req_keys = request.form.to_dict().keys()
+        print(request.form.to_dict())
         if "name" not in req_keys:
-            return 403
+            return Response("Missing form data (name)", status=403)
         if "redirect_uri" not in req_keys:
-            return 403
+            return Response("Missing form data (redirect_uri)", status=403)
         name=request.form.get('name')
         if name == '':
             name=None
@@ -230,6 +240,7 @@ def createqr():
         return redirect(url_for('view_uuid',id = str(random_uuid)))
 
     else:
+        qr_uri = f'{url_base}/<UUID>'
         return render_template('create_qr.html', qr_uri=qr_uri, redirect_uri="", name="")
 
 

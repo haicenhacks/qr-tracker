@@ -1,7 +1,14 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Index{% endblock %}</h1>
+<div style="padding: 20px">
+  <h1>{% block title %}
+    {% if this_qr %}
+      {{ this_qr.name }}
+    {% else %}
+    Index
+    {% endif %}{% endblock %}</h1>
+</div>
 {% endblock %}
 {% block content %}
 
@@ -9,26 +16,43 @@
 
 <div>
   {% if not current_user.is_authenticated %}
-  <p>If you have reached this page, you have found the index. This is part of an information security experiment. You have probably scanned a QR code that didn't work.
+  <p>
+    If you have reached this page, you have scanned a QR code that you found somewhere.
+    This is part of an information security experiment.
+    None of your personal data has been collected, beyond what is sent to any website you visit.
+    This page and the QR code you scanned are not dangerous, but others could be.
+  </p>
+  <p>
+    QR codes could be used in "phishing" attacks <a href="https://en.wikipedia.org/wiki/Phishing">https://en.wikipedia.org/wiki/Phishing</a>
+    Instead of this page, you could have asked for login information that could be used to steal information.
 
-  This is in no way malicious. None of your personal data has been collected, beyond what is sent to any website. The extent of information collected is shown below:
+    My hope is that this will remind people to treat QR codes the same as random links sent via email.
+
+    The code that powers this page is available on < a href="https://github.com/haicenhacks/qr-tracking">github</a>.
+    For concerns
+
+
+    The extent of information collected is shown below:
   </p>
   {% endif %}
   {% if user_ip %}
     <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
   {% else %}
-
-
-    <h2>{{ this_qr.name }}</h2>
-    QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}">
-
+    QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}" class="img-fluid">
+    <div>
+      Clickable link: <a href="{{ this_qr.qr_data }}">{{ this_qr.qr_data }}</a>
+    </div>
+    <div>
+      Redirect: <a href="{{ this_qr.redirect_uri }}">{{ this_qr.redirect_uri }}</a>
+    </div>
     {# QR data: {{this_qr.uuid}} #}
-    <br>
     {% if current_user.is_authenticated %}
-      <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}">Delete</a>
-      <br>
-      <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}">Edit</a>
-    {% endif %}
+    <div style="padding-top: 10px;">
+      <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
+
+      <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
+    </div>
+
     {% endif %}
 
 
@@ -53,6 +77,7 @@
       </tbody>
     </table>
   </div>
+  {% endif %}
     {% endif %}
 </div>
 

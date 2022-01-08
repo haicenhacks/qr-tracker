@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 
 {% block header %}
+<div style="padding: 20px">
   <h1>{% block title %}All QR codes{% endblock %}</h1>
+</div>
 {% endblock %}
 {% block content %}
 
@@ -37,8 +39,9 @@
             </td>
           <td>{{qr.visits.all()|length}}</td>
           <td>
-            <a href="{{ url_for('delete_uuid', id=qr.uuid)}}">delete</a>
-            <a href="{{ url_for('edit_uuid', id=qr.uuid)}}">Edit</a>
+            <a href="{{ url_for('edit_uuid', id=qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
+            <a href="{{ url_for('delete_uuid', id=qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
+
           </td>
 
         </tr>

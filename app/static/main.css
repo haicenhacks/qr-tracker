@@ -15,7 +15,8 @@ img.qr
 }
 body {
   max-width: auto;
-  margin: 0 auto;
+  margin: 10 auto;
+  padding: 10px;
   background: white;
 }
 

@@ -4,6 +4,7 @@ services:
         environment:
           PYTHONUNBUFFERED: 1
           FLASK_SECRET_KEY: "${FLASK_SECRET_KEY}"
+          URL_BASE: "${URL_BASE}"
         build: .
         ports:
             - "5002:5002"
