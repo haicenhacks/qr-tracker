@@ -5,13 +5,21 @@
 Due to the increased useage of QR codes due to the ongoing pandemic, I was curious about how many people were scanning random QR codes.
 Further, I saw this as an opportunity to create prank QR codes.
 
+# Who would use this?
+
+This can be used to add some lighthearted fun, or to assess the security posture of your org (i.e. will employees scan random QR codes and then open the links)
+
+# How it works
 The process flow is described below:
 
 ![a flowchart image that describes what happens when the URL encoded on the QR code is opened](flow.png "flowchart")
 
-The QR code contains only a link to a the application.
+The QR code contains only a link to the web app.
+The web app collects IP address and user agent strings from anyone who visits the link encoded on the QR code, and stores them in a database.
+Finally, the visitor is redirected either to a page explaining what this app does, or to the defined url.
 
 # Admin interface
+
 Log in after following the instructions in [Deployment](#Deployment)
 
 ## Creating a QR campaign
@@ -55,6 +63,16 @@ Lastly, run
 `docker-compose up --build`
 
 It is suggested that a reverse proxy be used to route a subdomain to the app and handle https certs.
+
+# Future work
+
+There are a few enhancements I'd like to make.
+
+1. fully implement the javascript fingerprinting. Right now, it is non-functional and really just a proof of concept (it prints the screen height/width in the terminal)
+
+# License
+
+I chose the MIT license for this project. My preference is that this not be used for evil. If you've found this useful and would like to contribute, you can buy me a coffee https://ko-fi.com/haicen
 
 # FAQ's
 
