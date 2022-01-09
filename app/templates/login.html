@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<div style="padding: 20px">
+  <h1>{% block title %}Login{% endblock %}</h1>
+</div>
+{% endblock %}
+{% block content %}
+
+<form method="POST" id="createform" class="row g-3">
+  <div class="col-auto">
+
+    <label for="username" class="form-label">Userame</label>
+    <input type="text" class="form-control" id="username" id="username" name="username">
+  </div>
+  <div class=col-auto>
+    <label for="password" class="form-label">Password</label>
+    <input type="password" class="form-control" id="password" name="password">
+  </div>
+  <div >
+    <button type="submit" id="submit" class="btn btn-primary mb-3" form="createform">Submit</button>
+  </div>
+</form>
+
+{% endblock %}

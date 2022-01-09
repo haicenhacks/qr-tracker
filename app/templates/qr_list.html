@@ -7,45 +7,45 @@
 {% endblock %}
 {% block content %}
 
-    <table class="table table-responsive">
-      <thead>
-        <tr>
-          <th>Created By</th>
-          <th>Name</th>
-          <th>UUID</th>
-          <th>Redirect URI</th>
-          <th>QR code</th>
-          <th>Visit Count</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for qr in qrs %}
-        <tr>
-          <td>{{ qr.created_by }}</td>
-          <td>{{ qr.name }}</td>
-          <td><a href="{{ url_for('view_uuid', id=qr.uuid) }}">{{ url_for('view_uuid', id=qr.uuid) }}</a></td>
-          <td><a href="{{ qr.redirect_uri}}">{{ qr.redirect_uri}}</a></td>
+<table class="table table-responsive">
+  <thead>
+    <tr>
+      <th>Created By</th>
+      <th>Name</th>
+      <th>UUID</th>
+      <th>Redirect URI</th>
+      <th>QR code</th>
+      <th>Visit Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for qr in qrs %}
+    <tr>
+      <td>{{ qr.created_by }}</td>
+      <td>{{ qr.name }}</td>
+      <td><a href="{{ url_for('view_uuid', id=qr.uuid) }}">{{ url_for('view_uuid', id=qr.uuid) }}</a></td>
+      <td><a href="{{ qr.redirect_uri}}">{{ qr.redirect_uri}}</a></td>
 
-          <td>
-            <section>
-              <article>
-                <details>
-                  <summary>Click to show qr code</summary>
-                  <img src="{{ qrcode(qr.qr_data, error_correction='H')}}">
-                </details>
-              </article>
-              </section>
-              <a href="{{qr.qr_data}}">Clickable link</a>
-            </td>
-          <td>{{qr.visits.all()|length}}</td>
-          <td>
-            <a href="{{ url_for('edit_uuid', id=qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
-            <a href="{{ url_for('delete_uuid', id=qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
+      <td>
+        <section>
+          <article>
+            <details>
+              <summary>Click to show qr code</summary>
+              <img src="{{ qrcode(qr.qr_data, error_correction='H')}}">
+            </details>
+          </article>
+        </section>
+        <a href="{{qr.qr_data}}">Clickable link</a>
+      </td>
+      <td>{{qr.visits.all()|length}}</td>
+      <td>
+        <a href="{{ url_for('edit_uuid', id=qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
+        <a href="{{ url_for('delete_uuid', id=qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
 
-          </td>
+      </td>
 
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

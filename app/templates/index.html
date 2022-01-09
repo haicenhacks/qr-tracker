@@ -4,10 +4,11 @@
 <div style="padding: 20px">
   <h1>{% block title %}
     {% if this_qr %}
-      {{ this_qr.name }}
+    {{ this_qr.name }}
     {% else %}
     Index
-    {% endif %}{% endblock %}</h1>
+    {% endif %}{% endblock %}
+  </h1>
 </div>
 {% endblock %}
 {% block content %}
@@ -29,35 +30,35 @@
     My hope is that this will remind people to treat QR codes the same as random links sent via email.
 
     The code that powers this page is available on < a href="https://github.com/haicenhacks/qr-tracker">github</a>.
-    For concerns
+      For concerns
 
 
-    The extent of information collected is shown below:
+      The extent of information collected is shown below:
   </p>
   {% endif %}
   {% if user_ip %}
-    <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
+  <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
   {% else %}
-    QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}" class="img-fluid">
-    <div>
-      Clickable link: <a href="{{ this_qr.qr_data }}">{{ this_qr.qr_data }}</a>
-    </div>
-    <div>
-      Redirect: <a href="{{ this_qr.redirect_uri }}">{{ this_qr.redirect_uri }}</a>
-    </div>
-    {# QR data: {{this_qr.uuid}} #}
-    {% if current_user.is_authenticated %}
-    <div style="padding-top: 10px;">
-      <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
+  QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}" class="img-fluid">
+  <div>
+    Clickable link: <a href="{{ this_qr.qr_data }}">{{ this_qr.qr_data }}</a>
+  </div>
+  <div>
+    Redirect: <a href="{{ this_qr.redirect_uri }}">{{ this_qr.redirect_uri }}</a>
+  </div>
+  {# QR data: {{this_qr.uuid}} #}
+  {% if current_user.is_authenticated %}
+  <div style="padding-top: 10px;">
+    <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
 
-      <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
-    </div>
+    <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
+  </div>
 
-    {% endif %}
+  {% endif %}
 
 
-    {% if visitors %}
-     <div class="table-responsive">
+  {% if visitors %}
+  <div class="table-responsive">
     <table class="table">
       <thead>
         <tr>
@@ -67,18 +68,18 @@
         </tr>
       </thead>
       <tbody>
-      {% for visitor in visitors %}
+        {% for visitor in visitors %}
         <tr>
           <td>{{ visitor.time }}</td>
           <td>{{ visitor.ip_address }}</td>
           <td>{{ visitor.user_agent }}</td>
         </tr>
-      {% endfor %}
+        {% endfor %}
       </tbody>
     </table>
   </div>
   {% endif %}
-    {% endif %}
+  {% endif %}
 </div>
 
 {% endblock %}

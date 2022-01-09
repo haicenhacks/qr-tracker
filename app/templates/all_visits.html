@@ -8,26 +8,26 @@
 {% block content %}
 
 
-    {% if visitors %}
-      <table class="table table-responsive">
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>IP address</th>
-          <th>User Agent</th>
-          <th>UUID</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for visitor in visitors %}
-        <tr>
-          <td>{{ visitor.time }}</td>
-          <td>{{ visitor.ip_address }}</td>
-          <td>{{ visitor.user_agent }}</td>
-          <td>{{ visitor.uuid }}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% endif %}
+{% if visitors %}
+<table class="table table-responsive">
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>IP address</th>
+      <th>User Agent</th>
+      <th>UUID</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for visitor in visitors %}
+    <tr>
+      <td>{{ visitor.time }}</td>
+      <td>{{ visitor.ip_address }}</td>
+      <td>{{ visitor.user_agent }}</td>
+      <td>{{ visitor.uuid }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 {% endblock %}

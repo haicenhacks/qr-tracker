@@ -254,23 +254,18 @@ def all_visits():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        return '''
-               <form action='login' method='POST'>
-                <input type='text' name='username' id='username' placeholder='username'/>
-                <input type='password' name='password' id='password' placeholder='password'/>
-                <input type='submit' name='submit'/>
-               </form>
-               '''
+        return render_template('login.html')
 
-    username = request.form['username']
-    print(username)
-    if request.form['password'] == users[username]['password']:
-        user = User()
-        user.id = username
-        flask_login.login_user(user)
-        return redirect(url_for('index'))
+    elif request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if request.form['password'] == users[username]['password']:
+            user = User()
+            user.id = username
+            flask_login.login_user(user)
+            return redirect(url_for('index'))
 
-    return 'Bad login'
+        return 'Bad login'
 
 
 @app.route('/protected')
