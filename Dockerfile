@@ -1,8 +1,9 @@
-FROM python:3.7-alpine3.9
-RUN apk add build-base python-dev py-pip jpeg-dev zlib-dev
+FROM python:3.12.2-alpine3.18
+RUN apk add build-base python3-dev py-pip jpeg-dev zlib-dev
 ENV LIBRARY_PATH=/lib:/usr/lib
 
 COPY requirements.txt /
+RUN pip3 install --upgrade pip
 RUN pip3 install -r /requirements.txt
 
 
