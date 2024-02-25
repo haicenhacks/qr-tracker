@@ -23,13 +23,16 @@ login_manager = flask_login.LoginManager()
 
 login_manager.init_app(app)
 
-db = SQLAlchemy(app)
-
-qrcode = QRcode(app)
-FlaskUUID(app)
+db = SQLAlchemy()
 enable_js_fingerprint = False
 # url_base is used to set the redirect uri after the unique url is visited
 url_base = f"http://{os.environ['URL_BASE']}"
+
+with app.app_context():
+    qrcode = QRcode(app)
+    FlaskUUID(app)
+    db.init_app(app)
+    db.create_all()
 
 
 class User(flask_login.UserMixin):
@@ -78,6 +81,8 @@ class Visitor(db.Model):
     qr_scanned = db.Column(db.String, db.ForeignKey(Qr.uuid) )
 
 
+with app.app_context():
+    db.create_all()
 
 @app.route('/hello')
 def hello():
@@ -281,6 +286,5 @@ def logout():
     return redirect(url_for('login'))
 
 
-db.create_all()
 
 #app.run()
