@@ -102,6 +102,7 @@ def index():
 
 
 @app.route('/delete/<uuid:id>')
+@flask_login.login_required
 def delete_uuid(id):
 
     if flask_login.current_user.id == 'admin':
@@ -116,6 +117,19 @@ def delete_uuid(id):
             db.session.commit()
     return redirect('/view')
 
+
+@app.route('/delete/<uuid:id>/visitors')
+@flask_login.login_required
+def delete_visitors(id):
+
+    if flask_login.current_user.id == 'admin':
+        this_qr = Qr.query.filter_by(uuid = str(id) ).one()
+        visitors = Visitor.query.filter_by(uuid = str(id))
+        if visitors != []:
+            for visitor in visitors:
+                db.session.delete(visitor)
+            db.session.commit()
+    return redirect('/view')
 
 @app.route('/view/<uuid:id>')
 def view_uuid(id):
