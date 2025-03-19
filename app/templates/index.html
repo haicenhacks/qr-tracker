@@ -51,7 +51,7 @@
   <div style="padding-top: 10px;">
     <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
     <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
-    <a href="{{ url_for('delete_visitors', id=qr.uuid)}}" class="btn btn-warning btn-lg" tabindex="-1" role="button">Reset visitors</a>
+    <a href="{{ url_for('delete_visitors', id=this_qr.uuid)}}" class="btn btn-warning btn-lg" tabindex="-1" role="button">Reset visitors</a>
   </div>
 
   {% endif %}
