@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<div style="padding: 20px">
+  <h1>{% block title %}
+    {% if this_qr %}
+      {{ this_qr.name }}
+    {% else %}
+    Index
+    {% endif %}
+    {% endblock %}
+  </h1>
+</div>
+{% endblock %}
+{% block content %}
+{% if user_ip %}
+    <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
+  {% else %}
+    QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}" class="img-fluid">
+    <div>
+      Clickable link: <a href="{{ this_qr.qr_data }}">{{ this_qr.qr_data }}</a>
+    </div>
+    <div>
+      Redirect: <a href="{{ this_qr.redirect_uri }}">{{ this_qr.redirect_uri }}</a>
+    </div>
+    <div>
+      Log Only: {{this_qr.log_only}}
+    </div>
+    {# QR data: {{this_qr.uuid}} #}
+  {% endif %}
+  
+  {% if current_user.is_authenticated %}
+    <div style="padding-top: 10px;">
+      <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
+      <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
+      <a href="{{ url_for('delete_visitors', id=this_qr.uuid)}}" class="btn btn-warning btn-lg" tabindex="-1" role="button">Reset visitors</a>
+    </div>
+  {% endif %}
+
+  {% if visitors and not current_user.is_authenticated %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>IP address</th>
+          <th>User Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for visitor in visitors %}
+        <tr>
+          <td>{{ visitor.time }}</td>
+          <td>{{ visitor.redacted_ip }}</td>
+          <td>{{ visitor.user_agent }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif visitors and current_user.is_authenticated %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>IP address</th>
+          <th>User Agent</th>
+          <th>Method</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for visitor in visitors %}
+        <tr>
+          <td>{{ visitor.time }}</td>
+          <td>{{ visitor.ip_address }}</td>
+          <td>{{ visitor.user_agent }}</td>
+          <td>{{ visitor.method }}</td>
+          <td>{{ visitor.parameters }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

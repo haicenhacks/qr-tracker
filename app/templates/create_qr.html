@@ -25,6 +25,12 @@
         Enable JS fingerprinting (screen size)
       </label>
     </div> #}
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="logOnly" name="logOnly" %{if logOnly }% checked %{endif}%>
+      <label class="form-check-label" for="flexCheckDefault">
+        Log Only (no redirection)
+      </label>
+    </div>
     <div class="mb-3">
       <label for="redirect_uri" class="form-label">Redirect URI</label>
       <input type="text" class="form-control" id="redirect_uri" aria-describedby="redirect_help" value="{{ redirect_uri }}" id="redirect_uri" name="redirect_uri">

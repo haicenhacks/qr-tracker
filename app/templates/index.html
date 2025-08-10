@@ -4,19 +4,17 @@
 <div style="padding: 20px">
   <h1>{% block title %}
     {% if this_qr %}
-    {{ this_qr.name }}
+      {{ this_qr.name }}
     {% else %}
     Index
-    {% endif %}{% endblock %}
+    {% endif %}
+    {% endblock %}
   </h1>
 </div>
 {% endblock %}
 {% block content %}
 
-
-
 <div>
-  {% if not current_user.is_authenticated %}
   <p>
     If you have reached this page, you have scanned a QR code that you found somewhere.
     This is part of an information security experiment.
@@ -35,29 +33,6 @@
 
       The extent of information collected is shown below:
   </p>
-  {% endif %}
-  {% if user_ip %}
-  <p>Your client: {{ user_ip }} - {{ user_agent }}</p>
-  {% else %}
-  QR code: <img src="{{ qrcode(this_qr.qr_data, error_correction='H')}}" class="img-fluid">
-  <div>
-    Clickable link: <a href="{{ this_qr.qr_data }}">{{ this_qr.qr_data }}</a>
-  </div>
-  <div>
-    Redirect: <a href="{{ this_qr.redirect_uri }}">{{ this_qr.redirect_uri }}</a>
-  </div>
-  {# QR data: {{this_qr.uuid}} #}
-  {% if current_user.is_authenticated %}
-  <div style="padding-top: 10px;">
-    <a href="{{ url_for('edit_uuid', id=this_qr.uuid)}}" class="btn btn-primary btn-lg" tabindex="-1" role="button">Edit</a>
-    <a href="{{ url_for('delete_uuid', id=this_qr.uuid)}}" class="btn btn-danger btn-lg" tabindex="-1" role="button">Delete</a>
-    <a href="{{ url_for('delete_visitors', id=this_qr.uuid)}}" class="btn btn-warning btn-lg" tabindex="-1" role="button">Reset visitors</a>
-  </div>
-
-  {% endif %}
-
-
-  {% if visitors %}
   <div class="table-responsive">
     <table class="table">
       <thead>
@@ -68,18 +43,13 @@
         </tr>
       </thead>
       <tbody>
-        {% for visitor in visitors %}
         <tr>
-          <td>{{ visitor.time }}</td>
-          <td>{{ visitor.ip_address }}</td>
-          <td>{{ visitor.user_agent }}</td>
+          <td>2025-08-09 23:14:01.851221</td>
+          <td>127.0.x.x</td>
+          <td>Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0</td>
         </tr>
-        {% endfor %}
       </tbody>
     </table>
   </div>
-  {% endif %}
-  {% endif %}
-</div>
 
 {% endblock %}

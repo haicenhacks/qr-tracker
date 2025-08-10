@@ -16,6 +16,8 @@
       <th>IP address</th>
       <th>User Agent</th>
       <th>UUID</th>
+      <th>Method</th>
+      <th>Data</th>
     </tr>
   </thead>
   <tbody>
@@ -25,6 +27,8 @@
       <td>{{ visitor.ip_address }}</td>
       <td>{{ visitor.user_agent }}</td>
       <td>{{ visitor.uuid }}</td>
+      <td>{{ visitor.method }}</td>
+      <td>{{ visitor.parameters }}</td>
     </tr>
     {% endfor %}
   </tbody>

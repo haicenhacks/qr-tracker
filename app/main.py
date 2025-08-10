@@ -11,7 +11,7 @@ from flask_uuid import FlaskUUID
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 import flask_login
-
+from flask_cors import cross_origin
 
 app = Flask(__name__)
 
@@ -69,6 +69,7 @@ class Qr(db.Model):
     name = db.Column(db.String(100))
     visits = db.relationship('Visitor', backref='qr', cascade = 'all, delete-orphan', lazy = 'dynamic')
     created_by = db.Column(db.String(100))
+    log_only = db.Column(db.Boolean())
 
 
 class Visitor(db.Model):
@@ -79,6 +80,8 @@ class Visitor(db.Model):
     time = db.Column(db.DateTime())
     uuid = db.Column(db.String(100))
     qr_scanned = db.Column(db.String, db.ForeignKey(Qr.uuid) )
+    parameters = db.Column(db.String(255))
+    method = db.Column(db.String(10))
 
 
 with app.app_context():
@@ -92,9 +95,9 @@ def hello():
 @app.route('/')
 @app.route('/index')
 def index():
-    #visitors = Visitor.query.all()
-    #return render_template('index.html')
-    #print(flask_login.current_user.id)
+    """
+    Route Scope: Public, unauthenticated.
+    """
     user_ip=request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     user_agent=str(request.user_agent)
     time = datetime.now()
@@ -104,7 +107,10 @@ def index():
 @app.route('/delete/<uuid:id>')
 @flask_login.login_required
 def delete_uuid(id):
-
+    """
+    Route Scope: Private, authenticated user only.
+    Notes: prevent other authenticated users from deleting things that aren't their own.
+    """
     if flask_login.current_user.id == 'admin':
         this_qr = Qr.query.filter_by(uuid = str(id) ).one()
         db.session.delete(this_qr)
@@ -121,7 +127,10 @@ def delete_uuid(id):
 @app.route('/delete/<uuid:id>/visitors')
 @flask_login.login_required
 def delete_visitors(id):
-
+    """
+    Route Scope: Private, authenticated user only.
+    Notes: This only allows the admin to delete the visitor log.
+    """
     if flask_login.current_user.id == 'admin':
         this_qr = Qr.query.filter_by(uuid = str(id) ).one()
         visitors = Visitor.query.filter_by(uuid = str(id))
@@ -133,7 +142,9 @@ def delete_visitors(id):
 
 @app.route('/view/<uuid:id>')
 def view_uuid(id):
-
+    """
+    Route Scope: Public, unauthenticated.
+    """
     visitors = Visitor.query.filter_by(uuid = str(id))
     for q in Qr.query.all():
         print(q.uuid == str(id), q.uuid, str(id))
@@ -141,11 +152,15 @@ def view_uuid(id):
     this_qr = Qr.query.filter_by(uuid=str(id)).one()
 
 
-    return render_template('index.html', visitors=visitors, this_qr=this_qr)
+    return render_template('campaign.html', visitors=visitors, this_qr=this_qr)
 
 
 @app.route('/view')
+@flask_login.login_required
 def view_campaigns():
+    """
+    Scope: private, authenticated.
+    """
     if flask_login.current_user.id == 'admin':
         print("Admin = true")
         qrs = Qr.query.all()
@@ -155,26 +170,35 @@ def view_campaigns():
 
 @app.route('/<uuid:id>/redirect')
 def finalredirect(id):
+    """
+    Route Scope: Public, unauthenticated.
+    """
     print(request.cookies.get('width'))
     print(request.cookies.get('height'))
     user_ip=request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     user_agent=str(request.user_agent)
     this_qr = Qr.query.filter_by(uuid=str(id)).one()
     visitors = Visitor.query.filter_by(uuid = str(id))
+    redacted_ip = '.'.join(user_ip.split('.')[:2])+".x.x"
     if str(id) not in this_qr.redirect_uri:
         return redirect(this_qr.redirect_uri, 302)
 
     else:
-        return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
+        return render_template('index.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors, redacted_ip=redacted_ip)
 
 
-@app.route('/<uuid:id>')
+@app.route('/<uuid:id>', methods=['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'])
+@cross_origin()
 def visituuid(id):
+    """
+    Route Scope: Public, unauthenticated.
+    """
     user_ip=request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     user_agent=str(request.user_agent)
     time = datetime.now()
+    parameters = json.dumps({"GET": request.args.to_dict(), "BODY": request.get_data().decode('utf-8')})
 
-    visitor = Visitor(ip_address=user_ip, user_agent=user_agent, time=time, qr_scanned=str(id), uuid=str(id))
+    visitor = Visitor(ip_address=user_ip, user_agent=user_agent, time=time, qr_scanned=str(id), uuid=str(id), method=request.method, parameters=parameters)
     db.session.add(visitor)
     db.session.commit()
     this_qr = Qr.query.filter_by(uuid=str(id)).one()
@@ -184,6 +208,9 @@ def visituuid(id):
     if enable_js_fingerprint:
         return render_template('visit.html', user_ip=user_ip, user_agent=user_agent, visitors=visitors)
 
+    elif this_qr.log_only == True:
+        return Response("", 204)
+    
     else:
         if str(id) not in this_qr.redirect_uri:
             return redirect(this_qr.redirect_uri, 302)
@@ -195,12 +222,24 @@ def visituuid(id):
 @app.route('/<uuid:id>/edit', methods = ['POST', 'GET'])
 @flask_login.login_required
 def edit_uuid(id):
-
-    this_qr = Qr.query.filter_by(uuid=str(id)).one()
+    """
+    Scope: private, authenticated.
+    Notes: Restrict editing to those created by the current user, admin can access all.
+    """
+    if flask_login.current_user.id == 'admin':
+        this_qr = Qr.query.filter_by(uuid=str(id)).one()
+    else:
+        this_qr = Qr.query.filter_by(created_by=flask_login.current_user.id, uuid=str(id)).one()
+    
     if request.method == "POST":
         req_keys = request.form.to_dict().keys()
         print("FORM: ",request.form.to_dict())
         if 'name' in req_keys and 'redirect_uri' in req_keys:
+            logOnly = request.form.to_dict().get("logOnly")
+            if logOnly is not None:
+                this_qr.log_only = True
+            else:
+                this_qr.log_only = False
             name = request.form.get('name')
             redirect_uri = request.form.get('redirect_uri')
 
@@ -217,13 +256,16 @@ def edit_uuid(id):
         else:
             return Response("Missing form data (name or redirecturi)", status=403)
     else:
-        return render_template('create_qr.html', qr_uri=this_qr.qr_data, name=this_qr.name, redirect_uri=this_qr.redirect_uri)
+        return render_template('create_qr.html', log_only=this_qr.log_only, qr_uri=this_qr.qr_data, name=this_qr.name, redirect_uri=this_qr.redirect_uri)
 
 
 @app.route('/create', methods = ['POST', 'GET'])
 @flask_login.login_required
 def createqr():
-    """ Creates a unique url in the form of <url_base>/<uuid>, and inserts into database."""
+    """
+    Creates a unique url in the form of <url_base>/<uuid>, and inserts into database.
+    Scope: private, authenticated
+    """
 
     # Generage random uuid
     random_uuid = uuid.uuid4()
@@ -266,12 +308,20 @@ def createqr():
 @app.route('/all')
 @flask_login.login_required
 def all_visits():
-    visitors = Visitor.query.all()
-    return render_template('all_visits.html', visitors=visitors)
+    """
+    Route Scope: private, admin only.
+    """
+    if flask_login.current_user.id == 'admin':
+        visitors = Visitor.query.all()
+        return render_template('all_visits.html', visitors=visitors)
+    return Response("Only admins can access this endpoint", 403)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Route Scope: Public, unauthenticated.
+    """
     if request.method == 'GET':
         return render_template('login.html')
 
@@ -290,6 +340,10 @@ def login():
 @app.route('/protected')
 @flask_login.login_required
 def protected():
+    """
+    Scope: private, authenticated.
+    Notes: this is for automated testing.
+    """
     return 'Logged in as: ' + flask_login.current_user.id
 
 
@@ -298,7 +352,3 @@ def protected():
 def logout():
     flask_login.logout_user()
     return redirect(url_for('login'))
-
-
-
-#app.run()
