@@ -25,8 +25,11 @@ login_manager.init_app(app)
 
 db = SQLAlchemy()
 enable_js_fingerprint = False
-# url_base is used to set the redirect uri after the unique url is visited
-url_base = f"http://{os.environ['URL_BASE']}"
+if os.environ['USE_HTTPS']:
+    # url_base is used to set the redirect uri after the unique url is visited
+    url_base = f"https://{os.environ['URL_BASE']}"
+else:
+    url_base = f"http://{os.environ['URL_BASE']}"
 
 with app.app_context():
     qrcode = QRcode(app)
